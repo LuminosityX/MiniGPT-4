@@ -13,6 +13,36 @@ from omegaconf import OmegaConf
 from minigpt4.common.registry import registry
 
 
+'''  demo.py - minigpt4_eval.yaml
+model:
+  arch: mini_gpt4
+  model_type: pretrain_vicuna
+  freeze_vit: True
+  freeze_qformer: True
+  max_txt_len: 160
+  end_sym: "###"
+  low_resource: True
+  prompt_path: "prompts/alignment.txt"
+  prompt_template: '###Human: {} ###Assistant: '
+  ckpt: '/path/to/pretrained/ckpt/'
+
+
+datasets:
+  cc_sbu_align:
+    vis_processor:
+      train:
+        name: "blip2_image_eval"
+        image_size: 224
+    text_processor:
+      train:
+        name: "blip_caption"
+
+run:
+  task: image_text_pretrain
+
+'''
+
+
 class Config:
     def __init__(self, args):
         self.config = {}
@@ -22,11 +52,11 @@ class Config:
         # Register the config and configuration for setup
         registry.register("configuration", self)
 
-        user_config = self._build_opt_list(self.args.options)
+        user_config = self._build_opt_list(self.args.options)           # return OmegaConf object
 
-        config = OmegaConf.load(self.args.cfg_path)
+        config = OmegaConf.load(self.args.cfg_path)                     # yaml file
 
-        runner_config = self.build_runner_config(config)
+        runner_config = self.build_runner_config(config)                # return {"run": config.run}
         model_config = self.build_model_config(config, **user_config)
         dataset_config = self.build_dataset_config(config)
 
@@ -50,7 +80,7 @@ class Config:
         runner_config_validator.validate(runner_config)
 
     def _build_opt_list(self, opts):
-        opts_dot_list = self._convert_to_dot_list(opts)
+        opts_dot_list = self._convert_to_dot_list(opts)                                 # list:[x=y, ...]
         return OmegaConf.from_dotlist(opts_dot_list)
 
     @staticmethod
@@ -58,12 +88,12 @@ class Config:
         model = config.get("model", None)
         assert model is not None, "Missing model configuration file."
 
-        model_cls = registry.get_model_class(model.arch)
+        model_cls = registry.get_model_class(model.arch)                                 # arch: mini_gpt4
         assert model_cls is not None, f"Model '{model.arch}' has not been registered."
 
         model_type = kwargs.get("model.model_type", None)
         if not model_type:
-            model_type = model.get("model_type", None)
+            model_type = model.get("model_type", None)                                   # model_type: pretrain_vicuna
         # else use the model type selected by user.
 
         assert model_type is not None, "Missing model_type."
