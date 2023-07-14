@@ -26,7 +26,7 @@ def parse_args():
     parser.add_argument("--gpu-id", type=int, default=0, help="specify the gpu to load the model.")
     parser.add_argument(
         "--options",
-        nargs="+",
+        nargs="+",           # more argument, to form a list
         help="override some settings in the used config, the key-value pair "
         "in xxx=yyy format will be merged into config file (deprecate), "
         "change to --cfg-options instead.",
