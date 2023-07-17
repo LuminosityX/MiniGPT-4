@@ -54,12 +54,20 @@ print('Initializing Chat')
 args = parse_args()
 cfg = Config(args)
 
-model_config = cfg.model_cfg
-model_config.device_8bit = args.gpu_id
-model_cls = registry.get_model_class(model_config.arch)
+model_config = cfg.model_cfg                                                                       # return self.config.model
+model_config.device_8bit = args.gpu_id                                                             # 0
+model_cls = registry.get_model_class(model_config.arch)                                            # miniGPT4
 model = model_cls.from_config(model_config).to('cuda:{}'.format(args.gpu_id))
 
-vis_processor_cfg = cfg.datasets_cfg.cc_sbu_align.vis_processor.train
+vis_processor_cfg = cfg.datasets_cfg.cc_sbu_align.vis_processor.train                              
+
+# datasets:
+#    cc_sbu_align:
+#        vis_processor:
+#            train:
+#                name: "blip2_image_eval"
+#                image_size: 224
+
 vis_processor = registry.get_processor_class(vis_processor_cfg.name).from_config(vis_processor_cfg)
 chat = Chat(model, vis_processor, device='cuda:{}'.format(args.gpu_id))
 print('Initialization Finished')
