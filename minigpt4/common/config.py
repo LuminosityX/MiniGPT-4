@@ -42,6 +42,22 @@ run:
 
 '''
 
+''' OmegaConf from dot list
+
+dot_list = ["a.aa.aaa=1", "a.aa.bbb=2", "a.bb.aaa=3", "a.bb.bbb=4"]
+conf = OmegaConf.from_dotlist(dot_list)
+print(OmegaConf.to_yaml(conf))
+a:
+  aa:
+    aaa: 1
+    bbb: 2
+  bb:
+    aaa: 3
+    bbb: 4
+
+# 这种前面没有 -的是字典的并列，有-的是列表的并列
+'''
+
 
 class Config:
     def __init__(self, args):
@@ -84,7 +100,7 @@ class Config:
         return OmegaConf.from_dotlist(opts_dot_list)
 
     @staticmethod
-    def build_model_config(config, **kwargs):
+    def build_model_config(config, **kwargs):                                            # config: cfg_config  kwargs: options
         model = config.get("model", None)
         assert model is not None, "Missing model configuration file."
 
@@ -98,10 +114,25 @@ class Config:
 
         assert model_type is not None, "Missing model_type."
 
-        model_config_path = model_cls.default_config_path(model_type=model_type)
+        model_config_path = model_cls.default_config_path(model_type=model_type)         # model_type: pretrain_vicuna
+        '''
+        Basemodel  -> Blip2Base -> MiniGPT4
+        
+        in class Basemodel 
+        @classmethod
+        def default_config_path(cls, model_type):
+        assert (
+            model_type in cls.PRETRAINED_MODEL_CONFIG_DICT
+        ), "Unknown model type {}".format(model_type)
+        return get_abs_path(cls.PRETRAINED_MODEL_CONFIG_DICT[model_type])
+        
+        in class MiniGPT4
+        PRETRAINED_MODEL_CONFIG_DICT = {
+        "pretrain_vicuna": "configs/models/minigpt4.yaml",}
+        '''
 
         model_config = OmegaConf.create()
-        # hierarchy override, customized config > default config
+        # hierarchy override, customized config > default config    from down to top override
         model_config = OmegaConf.merge(
             model_config,
             OmegaConf.load(model_config_path),
@@ -116,6 +147,17 @@ class Config:
 
     @staticmethod
     def build_dataset_config(config):
+        '''
+        datasets:
+           cc_sbu_align:
+             vis_processor:
+               train:
+                   name: "blip2_image_eval"
+                   image_size: 224
+             text_processor:
+               train:
+                   name: "blip_caption"
+        '''
         datasets = config.get("datasets", None)
         if datasets is None:
             raise KeyError(
@@ -124,10 +166,10 @@ class Config:
 
         dataset_config = OmegaConf.create()
 
-        for dataset_name in datasets:
-            builder_cls = registry.get_builder_class(dataset_name)
+        for dataset_name in datasets:                                            # demo.py only cc_sbu_align
+            builder_cls = registry.get_builder_class(dataset_name)               # like model, during import warp class to achceive
 
-            dataset_config_type = datasets[dataset_name].get("type", "default")
+            dataset_config_type = datasets[dataset_name].get("type", "default")  # default
             dataset_config_path = builder_cls.default_config_path(
                 type=dataset_config_type
             )
