@@ -219,6 +219,45 @@ class MiniGPT4(Blip2Base):
 
         return {"loss": loss}
 
+
+    '''
+    
+    model:
+      arch: mini_gpt4
+      model_type: pretrain_vicuna
+      freeze_vit: True
+      freeze_qformer: True
+      max_txt_len: 160
+      end_sym: "###"
+      low_resource: True
+      prompt_path: "prompts/alignment.txt"
+      prompt_template: '###Human: {} ###Assistant: '
+      ckpt: '/path/to/pretrained/ckpt/'
+
+    pretrain_vicuna.yaml
+
+    model:
+      arch: mini_gpt4
+
+      # vit encoder
+      image_size: 224
+      drop_path_rate: 0
+      use_grad_checkpoint: False
+      vit_precision: "fp16"
+      freeze_vit: True
+      freeze_qformer: True
+
+      # Q-Former
+      num_query_token: 32
+
+      # Vicuna
+      llama_model: "/path/to/vicuna/weights/"
+
+      # generation configs
+      prompt: ""
+
+    
+    '''
     @classmethod
     def from_config(cls, cfg):
         vit_model = cfg.get("vit_model", "eva_clip_g")
